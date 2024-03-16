@@ -1,5 +1,4 @@
 use structopt::StructOpt;
-use colored::*;
 
 #[derive(StructOpt)]
 struct Options {
@@ -22,7 +21,7 @@ fn main() {
         Some(path) => {
             let cat_template = std::fs::read_to_string(path)
                 .expect(&format!("could not read file {:?}", path));
-            let cat_picture = cat_template.replace("{message}", &message.bright_red().underline());
+            let cat_picture = cat_template.replace("{message}", &message);
             println!("{}", &cat_picture);
         }
         None => {
