@@ -1,28 +1,74 @@
+mod cats;
+use cats::CatChoice;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-struct Options {
-    #[structopt(default_value="Meow!")]
-    message: String,
+pub struct Options {
+    #[structopt(default_value = "Meow!")]
+    pub message: String,
 
-    #[structopt(short = "f", long = "file", parse(from_os_str))]
-    catfile: Option<std::path::PathBuf>,
+    #[structopt(short = "c", long = "cat", parse(from_os_str))]
+    pub cat: Option<CatChoice>,
+
+    #[structopt(short = "l", long = "list")]
+    pub list: bool,
 }
 
 fn main() {
     let options = Options::from_args();
+
+    if options.list {
+        println!("Available cat choices:");
+        println!("felix");
+        println!("whiskers");
+        println!("mittens");
+        return;
+    }
+
     let message = options.message;
-    
+
     if message.to_lowercase() == "woof" {
         eprintln!("A cat shouldn't bark like a dog.")
     }
 
-    match &options.catfile {
-        Some(path) => {
-            let cat_template = std::fs::read_to_string(path)
-                .expect(&format!("could not read file {:?}", path));
-            let cat_picture = cat_template.replace("{message}", &message);
-            println!("{}", &cat_picture);
+    match options.cat {
+        Some(cat_choice) => {
+            let cat_picture = match cat_choice {
+                CatChoice::Felix => {
+                    format!(
+                        "{}
+ \\
+  \\
+     /\\_/\\
+    ( O O )
+    =( I )=",
+                        message
+                    )
+                }
+                CatChoice::Whiskers => {
+                    format!(
+                        "{}
+ \\
+  \\
+     /\\_/\\
+    ( o.o )
+    > ^ <",
+                        message
+                    )
+                }
+                CatChoice::Mittens => {
+                    format!(
+                        "{}
+ \\
+  \\
+     /\\_/\\
+    ( -.- )
+    O(\"(\")(\")",
+                        message
+                    )
+                }
+            };
+            println!("{}", cat_picture);
         }
         None => {
             println!("{}", message);
@@ -33,5 +79,4 @@ fn main() {
             println!("    =( I )=");
         }
     }
-    
 }
