@@ -1,6 +1,56 @@
-mod cats;
-use cats::CatChoice;
+use std::ffi::OsStr;
+use std::str::FromStr;
 use structopt::StructOpt;
+
+#[derive(Debug)]
+pub enum CatChoice {
+    Felix,
+    Whiskers,
+    Mittens,
+}
+
+impl From<&OsStr> for CatChoice {
+    fn from(os_str: &OsStr) -> Self {
+        match os_str.to_str() {
+            Some("felix") => CatChoice::Felix,
+            Some("whiskers") => CatChoice::Whiskers,
+            Some("mittens") => CatChoice::Mittens,
+            _ => panic!("Invalid cat choice"),
+        }
+    }
+}
+
+impl FromStr for CatChoice {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "felix" => Ok(CatChoice::Felix),
+            "whiskers" => Ok(CatChoice::Whiskers),
+            "mittens" => Ok(CatChoice::Mittens),
+            _ => Err(()),
+        }
+    }
+}
+
+impl CatChoice {
+    fn draw(&self, message: &str) -> String {
+        match self {
+            CatChoice::Felix => format!(
+                "{}\n \\ \n     /\\_/\\\n    ( o.o )\n    > ^ <",
+                message
+            ),
+            CatChoice::Whiskers => format!(
+                "{}\n \\ \n     /\\_/\\\n    ( -.- )\n    O(\"(\")(\")",
+                message
+            ),
+            CatChoice::Mittens => format!(
+                "{}\n \\ \n     /\\_/\\\n    ( O O )\n    =( I )=",
+                message
+            ),
+        }
+    }
+}
 
 #[derive(StructOpt)]
 pub struct Options {
@@ -14,6 +64,19 @@ pub struct Options {
     pub list: bool,
 }
 
+fn print_cat_picture(cat_picture: &str) {
+    println!("{}", cat_picture);
+}
+
+fn print_default_cat(message: &str) {
+    println!("{}", message);
+    println!(" \\");
+    println!("  \\");
+    println!("     /\\_/\\");
+    println!("    ( O O )");
+    println!("    =( I )=");
+}
+
 fn main() {
     let options = Options::from_args();
 
@@ -25,58 +88,16 @@ fn main() {
         return;
     }
 
-    let message = options.message;
+    let message = options.message.to_lowercase();
 
-    if message.to_lowercase() == "woof" {
-        eprintln!("A cat shouldn't bark like a dog.")
+    if message == "woof" {
+        eprintln!("A cat shouldn't bark like a dog.");
     }
 
     match options.cat {
         Some(cat_choice) => {
-            let cat_picture = match cat_choice {
-                CatChoice::Felix => {
-                    format!(
-                        "{}
- \\
-  \\
-     /\\_/\\
-    ( O O )
-    =( I )=",
-                        message
-                    )
-                }
-                CatChoice::Whiskers => {
-                    format!(
-                        "{}
- \\
-  \\
-     /\\_/\\
-    ( o.o )
-    > ^ <",
-                        message
-                    )
-                }
-                CatChoice::Mittens => {
-                    format!(
-                        "{}
- \\
-  \\
-     /\\_/\\
-    ( -.- )
-    O(\"(\")(\")",
-                        message
-                    )
-                }
-            };
-            println!("{}", cat_picture);
+            print_cat_picture(&cat_choice.draw(&options.message));
         }
-        None => {
-            println!("{}", message);
-            println!(" \\");
-            println!("  \\");
-            println!("     /\\_/\\");
-            println!("    ( O O )");
-            println!("    =( I )=");
-        }
+        None => print_default_cat(&options.message),
     }
 }
