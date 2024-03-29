@@ -1,5 +1,4 @@
 use std::ffi::OsStr;
-use std::str::FromStr;
 use structopt::StructOpt;
 
 #[derive(Debug)]
@@ -16,19 +15,6 @@ impl From<&OsStr> for CatChoice {
             Some("whiskers") => CatChoice::Whiskers,
             Some("mittens") => CatChoice::Mittens,
             _ => panic!("Invalid cat choice"),
-        }
-    }
-}
-
-impl FromStr for CatChoice {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "felix" => Ok(CatChoice::Felix),
-            "whiskers" => Ok(CatChoice::Whiskers),
-            "mittens" => Ok(CatChoice::Mittens),
-            _ => Err(()),
         }
     }
 }
