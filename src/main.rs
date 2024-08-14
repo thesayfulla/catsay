@@ -15,7 +15,7 @@ fn main() {
             )
             .required(false)
             .value_parser(art::get_options())
-            .default_value("cat"),
+            .default_value("whiskers"),
         )
         .arg(
             arg!(
