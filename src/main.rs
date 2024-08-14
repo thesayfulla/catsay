@@ -1,89 +1,54 @@
-use std::ffi::OsStr;
-use structopt::StructOpt;
+mod art;
+mod quote;
+mod bubble;
 
-#[derive(Debug)]
-pub enum CatChoice {
-    Felix,
-    Whiskers,
-    Mittens,
-}
-
-impl From<&OsStr> for CatChoice {
-    fn from(os_str: &OsStr) -> Self {
-        match os_str.to_str() {
-            Some("felix") => CatChoice::Felix,
-            Some("whiskers") => CatChoice::Whiskers,
-            Some("mittens") => CatChoice::Mittens,
-            _ => panic!("Invalid cat choice"),
-        }
-    }
-}
-
-impl CatChoice {
-    fn draw(&self, message: &str) -> String {
-        match self {
-            CatChoice::Felix => format!(
-                "{}\n \\ \n     /\\_/\\\n    ( o.o )\n    > ^ <",
-                message
-            ),
-            CatChoice::Whiskers => format!(
-                "{}\n \\ \n     /\\_/\\\n    ( -.- )\n    O(\"(\")(\")",
-                message
-            ),
-            CatChoice::Mittens => format!(
-                "{}\n \\ \n     /\\_/\\\n    ( O O )\n    =( I )=",
-                message
-            ),
-        }
-    }
-}
-
-#[derive(StructOpt)]
-pub struct Options {
-    #[structopt(default_value = "Meow!")]
-    pub message: String,
-
-    #[structopt(short = "c", long = "cat", parse(from_os_str))]
-    pub cat: Option<CatChoice>,
-
-    #[structopt(short = "l", long = "list")]
-    pub list: bool,
-}
-
-fn print_cat_picture(cat_picture: &str) {
-    println!("{}", cat_picture);
-}
-
-fn print_default_cat(message: &str) {
-    println!("{}", message);
-    println!(" \\");
-    println!("  \\");
-    println!("     /\\_/\\");
-    println!("    ( O O )");
-    println!("    =( I )=");
-}
+use clap::{arg, ArgAction, Command};
 
 fn main() {
-    let options = Options::from_args();
-
-    if options.list {
-        println!("Available cat choices:");
-        println!("felix");
-        println!("whiskers");
-        println!("mittens");
-        return;
-    }
-
-    let message = options.message.to_lowercase();
-
-    if message == "woof" {
-        eprintln!("A cat shouldn't bark like a dog.");
-    }
-
-    match options.cat {
-        Some(cat_choice) => {
-            print_cat_picture(&cat_choice.draw(&options.message));
+    let matches = Command::new("catsay")
+        .version("1.0")
+        .author("Sayfulla Mirxalikov")
+        .about("Displays ASCII cats art or a random quote")
+        .arg(
+            arg!(
+                -o --option <OPTION> "Sets the ASCII image option"
+            )
+            .required(false)
+            .value_parser(art::get_options())
+            .default_value("cat"),
+        )
+        .arg(
+            arg!(
+                --quote "Fetches and displays a random quote"
+            )
+            .action(ArgAction::SetTrue),
+        )
+        .arg(arg!([message] "Message to be displayed").required(false).default_value("Hello!"))
+        .get_matches();
+    if matches.get_flag("quote") {
+        match quote::fetch_quote() {
+            Ok(quote) => {
+                if let Some(option) = matches.get_one::<String>("option") {
+                    let bubble = bubble::make_bubble(&quote);
+                    match art::get_art(option) {
+                        Some(image) => println!("{}\n{}", bubble, image),
+                        None => println!("Option not found."),
+                    }
+                }
+            },
+            Err(e) => eprintln!("Failed to fetch quote: {}", e),
         }
-        None => print_default_cat(&options.message),
+    } else {
+        if let Some(option) = matches.get_one::<String>("option") {
+            let message = matches
+                .get_one::<String>("message").unwrap().as_str();
+
+            let bubble = bubble::make_bubble(message);
+
+            match art::get_art(option) {
+                Some(image) => println!("{}\n{}", bubble, image),
+                None => println!("Option not found."),
+            }
+        }
     }
 }
